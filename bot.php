@@ -133,29 +133,13 @@ while (true) {
             $files = null;
             $task_id = null;
             if ($updates[$c]->type == 'vkpay_transaction') {
-                /*if ($updates[$c]->amount == "15000") {
-                    $query = mysqli_query($link, "SELECT * FROM `users` WHERE `vk_id` = '" . $updates[$c]->from_id . "'");
-                    if (mysqli_num_rows($query) > 0) {
-                        mysqli_query($link, "UPDATE `users` SET `ads`='off' WHERE `vk_id` = '" . $updates[$c]->from_id . "'");
-                    } else {
-                        mysqli_query($link, "INSERT INTO `users` SET `vk_id`='" . $from_id . "', `user_condition` = 'ready', `ads`='off'");
-                    }
-                }
-                if ($updates[$c]->amount == "1000") {
-                    $query = mysqli_query($link, "SELECT * FROM `users` WHERE `vk_id` = '" . $updates[$c]->from_id . "'");
-                    if (mysqli_num_rows($query) > 0) {
-                        mysqli_query($link, "UPDATE `users` SET `ads`='off' WHERE `vk_id` = '" . $updates[$c]->from_id . "'");
-                    } else {
-                        mysqli_query($link, "INSERT INTO `users` SET `vk_id`='" . $from_id . "', `user_condition` = 'ready', `ads`='off'");
-                    }
-                }*/
+		    // TO DO DONATIONS
             } elseif ($updates[$c]->type == 'message_new') {
                 $peer_id = $updates[$c]->object->peer_id;
                 $from_id = $updates[$c]->object->from_id;
                 $msg = $updates[$c]->object->text;
                 $from_id = mysqli_real_escape_string($link, $from_id);
                 $payload = json_decode($updates[$c]->object->payload)->button;
-                //print $from_id." ".$peer_id." ".$msg."\n";
                 if ($from_id == '450829055') {
                     $qweqwe = fopen('qweqwe.txt', 'w');
                     fwrite($qweqwe, json_encode($updates[$c]));
@@ -223,7 +207,7 @@ while (true) {
 							}] 
 							] 
 						}');
-                        mysqli_query($link, "INSERT INTO `users`(`user_condition`, `vk_id`) VALUES ('ready', '" . $from_id . "')");
+                        mysqli_query($link, "INSERT INTO `users`(`user_condition`, `vk_id`, `group_id`, `lesson`, `task`, `files`, `mass`) VALUES ('ready', '" . $from_id . "', '0', '', '', '', '0')");
                     } else {
                         if ($db['group_id'] == 0) {
                             if ($db['user_condition'] == 'ready') {
@@ -233,7 +217,7 @@ while (true) {
                                 } elseif ($payload == "create") {
                                     $group_token = md5($from_id . time());
                                     vk_msg_send($peer_id, 'Ключ группы: ///' . $group_token . '///<br>Можете передавать его своим одноклассникам или однокурсникам!', $keyboards['main']);
-                                    mysqli_query($link, "INSERT INTO `groups` SET `group_token`='" . $group_token . "'");
+                                    mysqli_query($link, "INSERT INTO `groups` SET `group_token`='" . $group_token . "', `group_name` = '', `group_description` = ''");
                                     $temp = mysqli_fetch_array(mysqli_query($link, "SELECT * FROM `groups` WHERE `group_token`='" . $group_token . "'"));
                                     mysqli_query($link, "UPDATE `users` SET `group_id`='" . $temp['group_id'] . "' WHERE `vk_id` = '" . $from_id . "'");
                                 } else {
@@ -265,7 +249,6 @@ while (true) {
                                 $msg = mysqli_real_escape_string($link, $msg);
                                 $temp = json_encode($updates[$c]);
                                 $split = explode('\/\/\/', $temp);
-                                //vk_msg_send($peer_id, $updates[$c]);
                                 if (isset($split[1])) {
                                     $msg = mysqli_real_escape_string($link, $split[1]);
                                 }
@@ -287,7 +270,6 @@ while (true) {
                                     $gdpr_token = md5(time() . $from_id . file_get_contents('php://input') . $ex_time);
                                     mysqli_query($link, "INSERT INTO `tokens` SET `vk_id` = '$from_id', `token` = '$gdpr_token', `time`= '$time', `expiration_time` = '$ex_time'");
                                     echo "\n".$time."\n";
-                                    //vk_msg_send($peer_id, "Пока не работает.");
                                     vk_msg_send($peer_id, "Получить все данные, которые мы знаем о Вас можно в течение 10 минут по ссылке: <br>https://api.somecrap.ru/hw/GDPR.php?token=" . $gdpr_token . " <br><br>После того, как ссылка устареет, Вы можете запросить новую.<br><br>Мы обязаны предоставлять Вам эти данные для соблюдения Генерального регламента о защите персональных данных (GDPR)");
                                 }
                                 if ($payload == 'add') {
@@ -507,11 +489,7 @@ while (true) {
                                 $stmt->bind_param('si', $msg, $from_id);
                                 $stmt->execute();
                             } elseif ($db['user_condition'] == 'need_file_id' and $payload != 'cancel') {
-                                //vk_msg_send($peer_id, "Вы поставлены в очередь на получение файлов.", $keyboards['main']);
-                                //vk_msg_send($peer_id, "Введите задание. \nМожно прикрепить до 10 файлов. Они пройдут проверку, и прикрепятся только прошедшие проверку.\nРазмер каждого файла не должен превышать 19 мегабайт.\nПроверка файлов может длиться до 15 минут.");
                                 mysqli_query($link, "UPDATE `users` SET `user_condition` = 'ready' WHERE `vk_id` = '" . $from_id . "'");
-                                //$task_id = mysqli_real_escape_string($link, $msg);
-                                //mysqli_query($link, "INSERT INTO `get_files_queue` SET `vk_id` = '" . $from_id . "', `task_id` = '" . $task_id . "'");
                                 vk_msg_send($peer_id, "Вы поставлены в очередь на получение файлов.", $keyboards['main']);
                                 $task_id = mysqli_real_escape_string($link, $msg);
                                 bgexec('php fork_send.php '.$task_id.' '.$from_id);
@@ -521,7 +499,6 @@ while (true) {
                                 } else {
                                     $files = '';
                                 }
-                                //vk_msg_send($peer_id,json_encode($updates[$c] -> object -> attachments));
                                 vk_msg_send($peer_id, 'Введите дату<br>Формат: ДД.ММ.ГГГГ');
                                 $stmt = $link->prepare("UPDATE `users` SET `user_condition` = 'need_date', `task` = ?, `files` = ?  WHERE `vk_id` = ?");
                                 $stmt->bind_param('ssi', $msg, $files, $from_id);
@@ -536,11 +513,6 @@ while (true) {
                                     $stmt->bind_param('ssiiis', $db['lesson'], $db['task'], $date, time(), $db['group_id'],$llll);
                                     $stmt->execute();
                                     $task_id = $stmt->insert_id;
-                                    /*if ($db['files'] != '') {
-                                        $stmt = $link->prepare("INSERT INTO `files_queue`(`files`, `task_id`, `group_id`) VALUES (?,?,?)");
-                                        $stmt->bind_param('sii', $db['files'], $task_id, $db['group_id']);
-                                        $stmt->execute();
-                                    }*/
                                     if ($db['files'] != '') {
                                         bgexec('php add_files.php '.$task_id.' '.$db['group_id'].' '.urlencode($db['files']));
                                     }
@@ -560,11 +532,7 @@ while (true) {
                                         $files = json_encode($updates[$c]->object->attachments);
                                     }
                                     vk_msg_send($peer_id, "Рассылка успешна поставлена в очередь.\nСкоро её увидят все участники группы.", $keyboards['main']);
-                                    // TODO: сделать форк.
                                     bgexec('php mass_fork.php '.$db['group_id'].' '.urlencode($msg).' '.urlencode($files));
-                                    //$stmt = $link->prepare("INSERT INTO `mass_queque`(`text`, `group_id`, `files`) VALUES (?,?,?)");
-                                    //$stmt->bind_param('sis', $msg, $db['group_id'], $files);
-                                    //$stmt->execute();
                                 }
                             }
                             if ($payload == 'cancel') {
