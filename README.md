@@ -3,7 +3,7 @@ Requires:
 
 PHP 7.2 or greater
 
-CentOS 7
+Centos 7/8, Ubuntu 16.04 or greater
 
 MySQL 8.0 or greater
 
