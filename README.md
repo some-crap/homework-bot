@@ -8,3 +8,5 @@ CentOS 7
 MySQL 8.0 or greater
 
 QR-code generator library: https://github.com/t0k4rt/phpqrcode
+
+Database dump will be uploaded later
